@@ -196,8 +196,6 @@ func mergeRenameCmds(userCmds []string, systemRenameCmdMap map[string]string) []
 }
 
 func redisServerContainer(cluster *redisv1alpha1.DistributedRedisCluster, password *corev1.EnvVar) corev1.Container {
-	probeArg := "redis-cli -h $(hostname)"
-
 	container := corev1.Container{
 		Name:  redisServerName,
 		Image: cluster.Spec.Image,
@@ -215,32 +213,6 @@ func redisServerContainer(cluster *redisv1alpha1.DistributedRedisCluster, passwo
 		},
 		VolumeMounts: volumeMounts(),
 		Command:      getRedisCommand(cluster, password),
-		LivenessProbe: &corev1.Probe{
-			InitialDelaySeconds: graceTime,
-			TimeoutSeconds:      5,
-			Handler: corev1.Handler{
-				Exec: &corev1.ExecAction{
-					Command: []string{
-						"sh",
-						"-c",
-						probeArg,
-					},
-				},
-			},
-		},
-		ReadinessProbe: &corev1.Probe{
-			InitialDelaySeconds: graceTime,
-			TimeoutSeconds:      5,
-			Handler: corev1.Handler{
-				Exec: &corev1.ExecAction{
-					Command: []string{
-						"sh",
-						"-c",
-						probeArg,
-					},
-				},
-			},
-		},
 		Env: []corev1.EnvVar{
 			{
 				Name: "POD_IP",
